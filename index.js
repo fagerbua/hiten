@@ -55,6 +55,10 @@ function decorate($) {
   clickables.each((i, elem) => {
     $(elem).prepend("[[C" + $(elem).attr("data-phantom-terminal-id") + "]]");
   });
+  const textInputs = $("input[type=text], input[type=textarea]");
+  textInputs.each((i, elem) => {
+    $(elem).prepend("[[I" + $(elem).attr("data-phantom-terminal-id") + "]]");
+  });
 }
 
 async function renderHtml(page) {
