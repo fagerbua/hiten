@@ -11,6 +11,7 @@
     "react": "0.14",
     "react-blessed": "^0.1.8",
     "readline-sync": "^1.4.7",
+    "webdriverio": "^4.9.11",
     "xmldom": "^0.1.27"
   },
   "devDependencies": {

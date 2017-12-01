@@ -1,46 +1,72 @@
-const phantom = require("phantom");
+const webdriverio = require("webdriverio");
 const readlineSync = require("readline-sync");
 const fs = require("fs");
-
 const cheerio = require("cheerio");
+
+const CHROME_BIN_PATH =
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+
+const options = {
+  desiredCapabilities: {
+    browserName: "chrome",
+    chromeOptions: {
+      binary: CHROME_BIN_PATH,
+      args: [
+        "headless",
+        // Use --disable-gpu to avoid an error from a missing Mesa
+        // library, as per
+        // https://chromium.googlesource.com/chromium/src/+/lkgr/headless/README.md
+        "disable-gpu"
+      ]
+    }
+  }
+};
+
 (async function() {
-  const instance = await phantom.create();
-  const page = await instance.createPage();
-
-  page.on("onConsoleMessage", function(msg) {
-    console.log("CONSOLE:" + msg);
-  });
-
-  const status = await page.open("https://nettskjema.uio.no/answer/87831.html");
+  const browser = webdriverio
+    .remote(options)
+    .init()
+    .url("https://nettskjema.uio.no/answer/87831.html");
 
   let answer;
   while (answer !== "0") {
-    await new Promise(resolve => {
-      setTimeout(() => {
-        resolve();
-      }, 1000);
-    });
-    await renderHtml(page);
+    await renderHtml(browser);
     answer = readlineSync.question("Command:");
     if (answer[0] === "C") {
-      await page.evaluate(function(answer) {
-        var elem = document.querySelectorAll(
-          '[data-phantom-terminal-id="' + answer.slice(1) + '"]'
-        );
-        elem[0].click();
-      }, answer);
+      await browser.click(
+        '[data-phantom-terminal-id="' + answer.slice(1) + '"]'
+      );
+    }
+    if (answer[0] === "I") {
+      const inputData = answer.slice(answer.indexOf("=") + 1);
+      const selector =
+        '[data-phantom-terminal-id="' +
+        answer.slice(1, answer.indexOf("=")) +
+        '"]';
+      console.log(inputData, selector);
+      await browser.click(selector);
+      await browser.setValue(selector, inputData);
+    }
+    if (answer[0] === "R") {
+      await renderHtml(browser);
     }
   }
-  await instance.exit();
 })();
 
-async function enumeratePageElements(page) {
-  await page.evaluate(function() {
+async function enumeratePageElements(browser) {
+  await browser.execute(function() {
     var all = document.getElementsByTagName("*");
 
     for (var i = 0, max = all.length; i < max; i++) {
       var elem = all[i];
       elem.setAttribute("data-phantom-terminal-id", i);
+    }
+
+    var inputs = document.getElementsByTagName("input");
+
+    for (var i = 0, max = inputs.length; i < max; i++) {
+      var elem = inputs[i];
+      elem.setAttribute("data-phantom-value", elem.value);
     }
   });
 }
@@ -58,12 +84,13 @@ function decorate($) {
   const textInputs = $("input[type=text], input[type=textarea]");
   textInputs.each((i, elem) => {
     $(elem).prepend("[[I" + $(elem).attr("data-phantom-terminal-id") + "]]");
+    $(elem).attr("value", $(elem).attr("data-phantom-value"));
   });
 }
 
-async function renderHtml(page) {
-  await enumeratePageElements(page);
-  const content = await page.property("content");
+async function renderHtml(browser) {
+  await enumeratePageElements(browser);
+  const content = await browser.getHTML("html");
   const $ = cheerio.load(content);
   filter($);
   decorate($);
