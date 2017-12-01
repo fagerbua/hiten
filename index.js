@@ -15,20 +15,17 @@ const cheerio = require("cheerio");
 
   let answer;
   while (answer !== "0") {
-    await enumeratePageElements(page);
-    const content = await page.property("content");
-    const $ = cheerio.load(content);
-    filter($);
-    fs.writeFileSync("browsed.html", $.html());
-    answer = readlineSync.question(
-      "Follow link? (0 to exit, p to print links)"
-    );
-    if (answer === "p") {
-      await printLinks($);
-    } else {
+    await new Promise(resolve => {
+      setTimeout(() => {
+        resolve();
+      }, 1000);
+    });
+    await renderHtml(page);
+    answer = readlineSync.question("Command:");
+    if (answer[0] === "C") {
       await page.evaluate(function(answer) {
         var elem = document.querySelectorAll(
-          '[data-phantom-terminal-id="' + answer + '"]'
+          '[data-phantom-terminal-id="' + answer.slice(1) + '"]'
         );
         elem[0].click();
       }, answer);
@@ -50,16 +47,21 @@ async function enumeratePageElements(page) {
 
 function filter($) {
   const scriptStuff = $("script, noscript");
-  console.warn("SCRIPTS", scriptStuff);
   scriptStuff.remove();
 }
 
-function printLinks($) {
-  const links = $("button, a");
-  links.each((i, elem) => {
-    console.log(
-      "[" + $(elem).attr("data-phantom-terminal-id") + "]",
-      $(elem).html()
-    );
+function decorate($) {
+  const clickables = $("a, button");
+  clickables.each((i, elem) => {
+    $(elem).prepend("[[C" + $(elem).attr("data-phantom-terminal-id") + "]]");
   });
+}
+
+async function renderHtml(page) {
+  await enumeratePageElements(page);
+  const content = await page.property("content");
+  const $ = cheerio.load(content);
+  filter($);
+  decorate($);
+  fs.writeFileSync("browsed.html", $.html());
 }
