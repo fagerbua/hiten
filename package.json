@@ -1,0 +1,19 @@
+{
+  "name": "phantom-terminal",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Jarle Fagerheim <jarle.fagerheim@usit.uio.no>",
+  "license": "MIT",
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "cheerio": "^1.0.0-rc.2",
+    "phantom": "^4.0.11",
+    "react": "0.14",
+    "react-blessed": "^0.1.8",
+    "readline-sync": "^1.4.7",
+    "xmldom": "^0.1.27"
+  },
+  "devDependencies": {
+    "prettier": "^1.8.2"
+  }
+}
