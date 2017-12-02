@@ -26,7 +26,13 @@
   (when (get-process phantom-terminal-process-name)
     (kill-process phantom-terminal-process-name))
   (setq phantom-terminal-current-process
-        (start-process phantom-terminal-process-name phantom-terminal-process-buffer-name "node" "index.js")))
+        (start-process phantom-terminal-process-name phantom-terminal-process-buffer-name "node" "index.js"))
+  (set-process-filter phantom-terminal-current-process #'phantom-terminal-process-output-filter))
+
+(defun phantom-terminal-process-output-filter (_ output)
+  (message "%S" output)
+  (when (string-match-p "WROTE" output)
+    (phantom-terminal-load-page)))
 
 (defun phantom-terminal-load-page ()
   (when (equal major-mode 'phantom-terminal-mode)

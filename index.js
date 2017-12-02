@@ -79,6 +79,12 @@ async function enumeratePageElements(browser) {
   });
 }
 
+async function pageLoadState(browser) {
+  return (await browser.execute(function() {
+    return document.readyState;
+  })).value;
+}
+
 function filter($) {
   const scriptStuff = $("script, noscript");
   scriptStuff.remove();
@@ -97,10 +103,17 @@ function decorate($) {
 }
 
 async function renderHtml(browser) {
+  let loadState = await pageLoadState(browser);
+  while (loadState !== "interactive" && loadState !== "complete") {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    loadState = await pageLoadState(browser);
+  }
   await enumeratePageElements(browser);
   const content = await browser.getHTML("html");
   const $ = cheerio.load(content);
   filter($);
   decorate($);
-  fs.writeFileSync("browsed.html", $.html());
+  const fileName = "browsed.html";
+  fs.writeFileSync(fileName, $.html());
+  console.log("WROTE", fileName);
 }
