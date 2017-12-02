@@ -1,16 +1,19 @@
-(require 'eww)
+(require 'shr)
 
 (defvar phantom-terminal-process-buffer-name "*phantom-terminal: process*")
 (defvar phantom-terminal-process-name "phantom-terminal-node")
+(defvar phantom-terminal-buffer-name "*phantom-terminal*")
 (defvar phantom-terminal-current-process)
 
-(define-minor-mode eww-phantom-terminal-mode
-  "Minor mode for using eww to render phantom-terminal stuff"
-  :lighter " eww-phantom"
-  :keymap (let ((map (make-sparse-keymap)))
-            (define-key map (kbd "\r")  'phantom-terminal-click)
-            (define-key map (kbd "g") 'phantom-terminal-reload-page)
-            map)
+(defvar phantom-terminal-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "\r")  'phantom-terminal-click)
+    (define-key map (kbd "g") 'phantom-terminal-reload-page)
+    map))
+
+(define-derived-mode phantom-terminal-mode fundamental-mode
+  "PhantomTerm"
+  "Major mode for using shr.el to render phantom-terminal stuff"
   (phantom-terminal-start-browser)
   (phantom-terminal-load-page))
 
@@ -23,7 +26,8 @@
         (start-process phantom-terminal-process-name phantom-terminal-process-buffer-name "node" "index.js")))
 
 (defun phantom-terminal-load-page ()
-  (eww-open-file "browsed.html")
+  (insert-file-contents "browsed.html")
+  (shr-render-region (point-min) (point-max))
   (let ((inhibit-read-only t))
     (while (re-search-forward "\\[\\[C[:digit:]*" nil t)
       (replace-match "BUTTON" nil nil))))
@@ -34,4 +38,12 @@
 
 (defun phantom-terminal-click (id)
   (process-send-string phantom-terminal-current-process (concat "C" id "\n")))
-(provide 'eww-phantom-terminal-mode)
+
+(defun phantom-terminal ()
+  "Launch phantom-terminal-mode in a separate buffer"
+  (interactive)
+  (get-buffer-create phantom-terminal-buffer-name)
+  (pop-to-buffer phantom-terminal-buffer-name)
+  (phantom-terminal-mode))
+
+(provide 'phantom-terminal-mode)
