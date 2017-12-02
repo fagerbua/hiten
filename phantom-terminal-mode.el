@@ -7,8 +7,9 @@
 
 (defvar phantom-terminal-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "\r")  'phantom-terminal-click)
+    (define-key map (kbd "c")  'phantom-terminal-click)
     (define-key map (kbd "g") 'phantom-terminal-reload-page)
+    (define-key map (kbd "o") 'phantom-terminal-goto-url)
     map))
 
 (define-derived-mode phantom-terminal-mode fundamental-mode
@@ -40,7 +41,13 @@
   (phantom-terminal-load-page))
 
 (defun phantom-terminal-click (id)
-  (process-send-string phantom-terminal-current-process (concat "C" id "\n")))
+  (interactive "n")
+  (process-send-string phantom-terminal-current-process (concat "C" (number-to-string id) "\n")))
+
+(defun phantom-terminal-goto-url (url)
+  (interactive "M")
+  (process-send-string phantom-terminal-current-process (concat "O" url "\n"))
+  (phantom-terminal-load-page))
 
 (defun phantom-terminal ()
   "Launch phantom-terminal-mode in a separate buffer"
