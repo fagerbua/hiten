@@ -31,24 +31,32 @@ const options = {
   let answer;
   while (answer !== "0") {
     await renderHtml(browser);
-    answer = readlineSync.question("Command:");
-    if (answer[0] === "C") {
-      await browser.click(
-        '[data-phantom-terminal-id="' + answer.slice(1) + '"]'
-      );
-    }
-    if (answer[0] === "I") {
-      const inputData = answer.slice(answer.indexOf("=") + 1);
-      const selector =
-        '[data-phantom-terminal-id="' +
-        answer.slice(1, answer.indexOf("=")) +
-        '"]';
-      console.log(inputData, selector);
-      await browser.click(selector);
-      await browser.setValue(selector, inputData);
-    }
-    if (answer[0] === "R") {
-      await renderHtml(browser);
+    answer = readlineSync.question("> ");
+    console.log("Handling", answer);
+    try {
+      if (answer[0] === "C") {
+        await browser.click(
+          '[data-phantom-terminal-id="' + answer.slice(1) + '"]'
+        );
+      }
+      if (answer[0] === "I") {
+        const inputData = answer.slice(answer.indexOf("=") + 1);
+        const selector =
+          '[data-phantom-terminal-id="' +
+          answer.slice(1, answer.indexOf("=")) +
+          '"]';
+        await browser.click(selector);
+        await browser.setValue(selector, inputData);
+      }
+      if (answer[0] === "R") {
+        await renderHtml(browser);
+      }
+      if (answer[0] === "O") {
+        const url = answer.slice(1);
+        await browser.url(url);
+      }
+    } catch (e) {
+      console.warn("Error:", e);
     }
   }
 })();
