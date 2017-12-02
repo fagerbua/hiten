@@ -1,35 +1,37 @@
-(defvar phantom-terminal-mode-hook nil)
+(require 'eww)
 
-(defvar phantom-terminal-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "RET" 'phantom-terminal-click)
-    map)
-  "Keymap for phantom-terminal major mode")
-
-(defvar phantom-terminal-buffer-name "*phantom-terminal*")
 (defvar phantom-terminal-process-buffer-name "*phantom-terminal: process*")
 (defvar phantom-terminal-process-name "phantom-terminal-node")
+(defvar phantom-terminal-current-process)
 
-(defun phantom-terminal-mode ()
-  "Major mode for browsing using phantom-terminal"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map phantom-terminal-mode-map)
+(define-minor-mode eww-phantom-terminal-mode
+  "Minor mode for using eww to render phantom-terminal stuff"
+  :lighter " eww-phantom"
+  :keymap (let ((map (make-sparse-keymap)))
+            (define-key map (kbd "\r")  'phantom-terminal-click)
+            (define-key map (kbd "g") 'phantom-terminal-reload-page)
+            map)
   (phantom-terminal-start-browser)
-  (phantom-terminal-load-page)
-  (setq major-mode 'phantom-terminal-mode)
-  (setq mode-name "Phantom-Terminal")
-  (run-hooks 'phantom-terminal-mode-hook))
+  (phantom-terminal-load-page))
 
 (defun phantom-terminal-start-browser ()
   (when (get-buffer phantom-terminal-process-buffer-name)
     (kill-buffer phantom-terminal-process-buffer-name))
-  (start-process phantom-terminal-process-name phantom-terminal-process-buffer-name "node" "index.js"))
+  (when (get-process phantom-terminal-process-name)
+    (kill-process phantom-terminal-process-name))
+  (setq phantom-terminal-current-process
+        (start-process phantom-terminal-process-name phantom-terminal-process-buffer-name "node" "index.js")))
 
 (defun phantom-terminal-load-page ()
-  (when (get-buffer phantom-terminal-buffer-name)
-    (kill-buffer phantom-terminal-buffer-name))
   (eww-open-file "browsed.html")
-  (rename-buffer phantom-terminal-buffer-name))
+  (let ((inhibit-read-only t))
+    (while (re-search-forward "\\[\\[C[:digit:]*" nil t)
+      (replace-match "BUTTON" nil nil))))
 
-(provide 'phantom-terminal-mode)
+(defun phantom-terminal-reload-page ()
+  (process-send-string phantom-terminal-current-process "R\n")
+  (phantom-terminal-load-page))
+
+(defun phantom-terminal-click (id)
+  (process-send-string phantom-terminal-current-process (concat "C" id "\n")))
+(provide 'eww-phantom-terminal-mode)
