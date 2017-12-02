@@ -26,13 +26,17 @@
         (start-process phantom-terminal-process-name phantom-terminal-process-buffer-name "node" "index.js")))
 
 (defun phantom-terminal-load-page ()
-  (insert-file-contents "browsed.html")
-  (shr-render-region (point-min) (point-max))
-  (let ((inhibit-read-only t))
-    (while (re-search-forward "\\[\\[C[:digit:]*" nil t)
-      (replace-match "BUTTON" nil nil))))
+  (let ((current-point (point)))
+    (erase-buffer)
+    (insert-file-contents "browsed.html")
+    (shr-render-region (point-min) (point-max))
+    (let ((inhibit-read-only t))
+      (while (re-search-forward "\\[\\[C[:digit:]*" nil t)
+        (replace-match "BUTTON" nil nil)))
+    (goto-char current-point)))
 
 (defun phantom-terminal-reload-page ()
+  (interactive)
   (process-send-string phantom-terminal-current-process "R\n")
   (phantom-terminal-load-page))
 
