@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "main": "index.js",
   "author": "Jarle Fagerheim <jarle.fagerheim@usit.uio.no>",
-  "license": "GPL",
+  "license": "GPL-3.0",
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
     "readline-sync": "^1.4.7",
