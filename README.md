@@ -11,6 +11,7 @@ text-based browsers such as eww, w3m or elinks.
 
 ## Prerequisites
 * node.js
+* pandoc
 * Google Chrome and chromedriver
 
 ## Installation
