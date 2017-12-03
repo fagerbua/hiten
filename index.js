@@ -92,8 +92,9 @@ function filter($) {
 
 function decorate($) {
   const clickables = $("a, button");
-  clickables.each((i, elem) => {
-    $(elem).prepend("[[C" + $(elem).attr("data-phantom-terminal-id") + "]]");
+  clickables.each((i, clickable) => {
+    const elem = $(clickable);
+    elem.html(`[[${elem.attr("data-phantom-terminal-id")}:C:${elem.html()}]]`);
   });
   const textInputs = $("input[type=text], input[type=textarea]");
   textInputs.each((i, elem) => {

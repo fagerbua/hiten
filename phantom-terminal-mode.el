@@ -1,4 +1,4 @@
-(require 'shr)
+;;; phantom-terminal-mode.el -*- lexical-binding: t -*-
 
 (defvar phantom-terminal-process-buffer-name "*phantom-terminal: process*")
 (defvar phantom-terminal-process-name "phantom-terminal-node")
@@ -9,14 +9,14 @@
 
 (defvar phantom-terminal-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "c") 'phantom-terminal-click)
     (define-key map (kbd "g") 'phantom-terminal-reload-page-at-least-once)
     (define-key map (kbd "o") 'phantom-terminal-goto-url)
+    (define-key map (kbd "c") 'widget-button-press)
     map))
 
 (define-derived-mode phantom-terminal-mode fundamental-mode
   "PhantomTerm"
-  "Major mode for using shr.el to render phantom-terminal stuff"
+  "Major mode for browsing the web using phantom-terminal"
   (phantom-terminal-start-browser)
   (phantom-terminal-load-page))
 
@@ -39,9 +39,14 @@
     (let ((current-point (point)))
       (erase-buffer)
       (call-process "pandoc" nil t nil "-f" "html" "-t" "plain" "browsed.html")
-      (let ((inhibit-read-only t))
-        (while (re-search-forward "\\[\\[C[:digit:]*" nil t)
-          (replace-match "BUTTON" nil nil)))
+      (goto-char (point-min))
+      (while (re-search-forward "\\[\\[\\([0-9]+\\):C:\\(.*\\)\\]\\]" nil t)
+        (let ((id (match-string 1))
+              (caption (match-string 2)))
+          (replace-match "" nil nil)
+          (widget-create 'push-button
+                         :notify (lambda (&rest _) (phantom-terminal-click id))
+                         caption)))
       (goto-char current-point))))
 
 (defun phantom-terminal-reload-page ()
@@ -69,8 +74,7 @@
   (cancel-timer phantom-terminal-current-timer))
 
 (defun phantom-terminal-click (id)
-  (interactive "n")
-  (process-send-string phantom-terminal-current-process (concat "C" (number-to-string id) "\n")))
+  (process-send-string phantom-terminal-current-process (concat "C" id "\n")))
 
 (defun phantom-terminal-goto-url (url)
   (interactive "M")
