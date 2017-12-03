@@ -35,16 +35,12 @@ const options = {
     console.log("Handling", answer);
     try {
       if (answer[0] === "C") {
-        await browser.click(
-          '[data-phantom-terminal-id="' + answer.slice(1) + '"]'
-        );
+        await browser.click('[data-hiten-id="' + answer.slice(1) + '"]');
       }
       if (answer[0] === "I") {
         const inputData = answer.slice(answer.indexOf("=") + 1);
         const selector =
-          '[data-phantom-terminal-id="' +
-          answer.slice(1, answer.indexOf("=")) +
-          '"]';
+          '[data-hiten-id="' + answer.slice(1, answer.indexOf("=")) + '"]';
         await browser.click(selector);
         await browser.setValue(selector, inputData);
       }
@@ -67,14 +63,14 @@ async function enumeratePageElements(browser) {
 
     for (var i = 0, max = all.length; i < max; i++) {
       var elem = all[i];
-      elem.setAttribute("data-phantom-terminal-id", i);
+      elem.setAttribute("data-hiten-id", i);
     }
 
     var inputs = document.getElementsByTagName("input");
 
     for (var i = 0, max = inputs.length; i < max; i++) {
       var elem = inputs[i];
-      elem.setAttribute("data-phantom-value", elem.value);
+      elem.setAttribute("data-hiten-value", elem.value);
     }
   });
 }
@@ -94,11 +90,11 @@ function decorate($) {
   const clickables = $("a, button");
   clickables.each((i, clickable) => {
     const elem = $(clickable);
-    elem.html(`[[${elem.attr("data-phantom-terminal-id")}:C:${elem.html()}]]`);
+    elem.html(`[[${elem.attr("data-hiten-id")}:C:${elem.html()}]]`);
   });
   const textInputs = $("input[type=text], input[type=textarea]");
   textInputs.each((i, elem) => {
-    $(elem).prepend("[[I" + $(elem).attr("data-phantom-terminal-id") + "]]");
+    $(elem).prepend("[[I" + $(elem).attr("data-hiten-id") + "]]");
     $(elem).attr("value", $(elem).attr("data-phantom-value"));
   });
 }
