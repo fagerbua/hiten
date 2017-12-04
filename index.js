@@ -59,10 +59,21 @@ const options = {
 
 async function enumeratePageElements(browser) {
   await browser.execute(function() {
+    var isInvisible = function(elem) {
+      var displayStyle = window.getComputedStyle(elem);
+      return (
+        (displayStyle.display && displayStyle.display === "none") ||
+        elem.getAttribute("hidden")
+      );
+    };
+
     var all = document.getElementsByTagName("*");
 
     for (var i = 0, max = all.length; i < max; i++) {
       var elem = all[i];
+      if (isInvisible(elem)) {
+        elem.setAttribute("data-hiten-hidden", true);
+      }
       elem.setAttribute("data-hiten-id", i);
     }
 
@@ -90,6 +101,7 @@ function decorate($) {
   decorateClickableElements($);
   decorateTextInputs($);
   decorateHeadings($);
+  removeInvisibleElements($);
 }
 
 function decorateClickableElements($) {
@@ -116,6 +128,10 @@ function decorateTextInputs($) {
     $(elem).prepend("[[I" + $(elem).attr("data-hiten-id") + "]]");
     $(elem).attr("value", $(elem).attr("data-phantom-value"));
   });
+}
+
+function removeInvisibleElements($) {
+  $("*[data-hiten-hidden=true]").remove();
 }
 
 async function renderHtml(browser) {
