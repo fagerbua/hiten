@@ -87,11 +87,30 @@ function filter($) {
 }
 
 function decorate($) {
+  decorateClickableElements($);
+  decorateTextInputs($);
+  decorateHeadings($);
+}
+
+function decorateClickableElements($) {
   const clickables = $("a, button");
   clickables.each((i, clickable) => {
     const elem = $(clickable);
     elem.html(`[[${elem.attr("data-hiten-id")}:C:${elem.html()}]]`);
   });
+}
+
+function decorateHeadings($) {
+  const headings = $("h1, h2, h3, h4, h5, h6");
+  headings.each((i, heading) => {
+    const elem = $(heading);
+    const level = parseInt(elem[0].name[1]);
+    const prefix = "*".repeat(level);
+    elem.html(`${prefix} ${elem.html()}`);
+  });
+}
+
+function decorateTextInputs($) {
   const textInputs = $("input[type=text], input[type=textarea]");
   textInputs.each((i, elem) => {
     $(elem).prepend("[[I" + $(elem).attr("data-hiten-id") + "]]");
